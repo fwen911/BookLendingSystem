@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图书借阅管理系统</title>
+    <style>
+      /* 全局样式 */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        color: #333;
+        line-height: 1.6;
+        min-height: 100vh;
+      }
+      
+      /* 主容器 */
+      .app-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      
+      /* 导航栏 */
+      .navbar {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 15px 20px;
+        margin-bottom: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        animation: fadeIn 0.8s ease-out;
+      }
+      
+      .logo {
+        font-size: 28px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        letter-spacing: 1px;
+      }
+      
+      .nav-links {
+        display: flex;
+        gap: 15px;
+      }
+      
+      .nav-link {
+        text-decoration: none;
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+      }
+      
+      .nav-link::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+        z-index: -1;
+      }
+      
+      .nav-link:hover::after {
+        left: 0;
+      }
+      
+      .nav-link:hover {
+        color: white;
+        transform: translateY(-2px);
+      }
+      
+      .nav-link.active {
+        background-color: rgba(255, 255, 255, 0.3);
+        color: white;
+      }
+      
+      /* 内容区域 */
+      .content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        animation: slideUp 0.6s ease-out;
+      }
+      
+      h1 {
+        color: #667eea;
+        margin-bottom: 25px;
+        text-align: center;
+        font-size: 32px;
+        font-weight: 700;
+        position: relative;
+        padding-bottom: 15px;
+      }
+      
+      h1::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        border-radius: 2px;
+      }
+      
+      /* 搜索栏 */
+      .search-bar {
+        margin-bottom: 25px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      
+      .search-bar input {
+        flex: 1;
+        padding: 12px 20px;
+        border: 2px solid #e9ecef;
+        border-radius: 30px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background-color: white;
+      }
+      
+      .search-bar input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+      
+      .search-bar button {
+        padding: 12px 25px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+      
+      .search-bar button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      }
+      
+      /* 过滤标签 */
+      .filter-tabs {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+      }
+      
+      .filter-tab {
+        padding: 10px 20px;
+        border: 2px solid #e9ecef;
+        border-radius: 30px;
+        background-color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        color: #666;
+      }
+      
+      .filter-tab:hover {
+        border-color: #667eea;
+        color: #667eea;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
+      }
+      
+      .filter-tab.active {
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+      
+      /* 图书列表 */
+      .book-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+      }
+      
+      /* 图书卡片 */
+      .book-item {
+        background-color: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 1px solid #eaeaea;
+        position: relative;
+      }
+      
+      .book-item:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+      }
+      
+      /* 图书封面 */
+      .book-cover {
+        height: 240px;
+        overflow: hidden;
+        position: relative;
+        background-color: #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .book-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+        min-height: 100%;
+        min-width: 100%;
+      }
+      
+      /* 模态框中的图书封面 */
+      .modal-book-cover {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto 20px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+      
+      .modal-book-cover img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+        display: block;
+      }
+      
+      /* 响应式布局优化 */
+      @media (max-width: 768px) {
+        .book-cover {
+          height: 200px;
+        }
+        
+        .modal-book-cover {
+          max-width: 150px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .book-cover {
+          height: 180px;
+        }
+        
+        .modal-book-cover {
+          max-width: 120px;
+        }
+      }
+      
+      .book-item:hover .book-cover img {
+        transform: scale(1.1);
+      }
+      
+      /* 标签装饰 */
+      .book-category-tag {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 500;
+        z-index: 2;
+      }
+      
+      .book-status-tag {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: #28a745;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 500;
+        z-index: 2;
+      }
+      
+      .book-status-tag.unavailable {
+        background-color: #dc3545;
+      }
+      
+      /* 图书信息 */
+      .book-info {
+        padding: 20px;
+      }
+      
+      .book-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: #333;
+        line-height: 1.3;
+        height: 52px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      
+      .book-author {
+        color: #666;
+        font-size: 15px;
+        margin-bottom: 12px;
+        font-style: italic;
+      }
+      
+      .book-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #888;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #f0f0f0;
+      }
+      
+      /* 操作按钮 */
+      .book-actions {
+        display: flex;
+        gap: 12px;
+      }
+      
+      .action-btn {
+        flex: 1;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+      }
+      
+      .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(-100%) skewX(-45deg);
+        transition: transform 0.5s ease;
+        z-index: -1;
+      }
+      
+      .action-btn:hover::before {
+        transform: translateX(100%) skewX(-45deg);
+      }
+      
+      .borrow-btn {
+        background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+      }
+      
+      .borrow-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+      }
+      
+      .detail-btn {
+        background: linear-gradient(90deg, #007bff 0%, #00bcd4 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+      }
+      
+      .detail-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+      }
+      
+      .borrow-btn:disabled {
+        background: linear-gradient(90deg, #6c757d 0%, #adb5bd 100%);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      
+      /* 模态框 */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(5px);
+        animation: fadeIn 0.3s ease;
+      }
+      
+      .modal-content {
+        background-color: white;
+        padding: 30px;
+        border-radius: 15px;
+        max-width: 550px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        animation: modalSlideIn 0.4s ease-out;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        position: relative;
+      }
+      
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f0f0f0;
+      }
+      
+      .modal-header h3 {
+        margin: 0;
+        color: #667eea;
+        font-size: 24px;
+        font-weight: 700;
+      }
+      
+      .close-btn {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        color: #999;
+        transition: all 0.3s ease;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+      }
+      
+      .close-btn:hover {
+        color: #667eea;
+        background-color: #f8f9fa;
+      }
+      
+      /* 模态框内的图书详情 */
+      .modal-book-detail {
+        display: flex;
+        gap: 25px;
+        margin-bottom: 20px;
+      }
+      
+      .modal-book-cover {
+        width: 150px;
+        height: 220px;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        flex-shrink: 0;
+      }
+      
+      .modal-book-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      .modal-book-info {
+        flex: 1;
+      }
+      
+      .modal-book-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 8px;
+      }
+      
+      .modal-book-author {
+        color: #667eea;
+        font-size: 18px;
+        margin-bottom: 15px;
+        font-style: italic;
+      }
+      
+      .modal-book-meta {
+        margin-bottom: 20px;
+      }
+      
+      .modal-book-meta p {
+        margin: 8px 0;
+        color: #666;
+        font-size: 15px;
+      }
+      
+      .modal-book-meta strong {
+        color: #333;
+        margin-right: 8px;
+      }
+      
+      .modal-book-description {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+        line-height: 1.7;
+        color: #555;
+      }
+      
+      .modal-footer {
+        margin-top: 25px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+      
+      /* 成功消息 */
+      .success-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(90deg, #56ab2f 0%, #a8e063 100%);
+        color: white;
+        padding: 18px 25px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        z-index: 1001;
+        display: none;
+        animation: slideInFromRight 0.5s ease-out;
+        font-weight: 500;
+      }
+      
+      /* 动画 */
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      @keyframes slideInFromRight {
+        from {
+          opacity: 0;
+          transform: translateX(100px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: scale(0.9) translateY(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+      
+      /* 响应式设计 */
+      @media (max-width: 768px) {
+        .nav-links {
+          display: none;
+        }
+        
+        .book-list {
+          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          gap: 20px;
+        }
+        
+        .search-bar {
+          flex-direction: column;
+        }
+        
+        .search-bar input {
+          width: 100%;
+        }
+        
+        .book-cover {
+          height: 200px;
+        }
+        
+        .modal-book-detail {
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+        
+        .modal-book-cover {
+          width: 120px;
+          height: 180px;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        .app-container {
+          padding: 15px;
+        }
+        
+        .content {
+          padding: 20px;
+        }
+        
+        .logo {
+          font-size: 22px;
+        }
+        
+        h1 {
+          font-size: 26px;
+        }
+        
+        .book-list {
+          grid-template-columns: 1fr;
+        }
+        
+        .modal-content {
+          padding: 20px;
+          margin: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <div class="navbar">
+        <div class="logo">图书借阅管理系统</div>
+        <div class="nav-links">
+          <a href="#" class="nav-link active">首页</a>
+          <a href="#" class="nav-link">图书管理</a>
+          <a href="#" class="nav-link">借阅记录</a>
+          <a href="#" class="nav-link">个人中心</a>
+        </div>
+      </div>
+      <div class="content">
+        <h1>欢迎使用图书借阅系统</h1>
+        
+        <div class="search-bar">
+          <input type="text" placeholder="搜索图书名称、作者或ISBN...">
+          <button>搜索</button>
+        </div>
+        
+        <div class="filter-tabs">
+          <button class="filter-tab active">全部图书</button>
+          <button class="filter-tab">文学</button>
+          <button class="filter-tab">科技</button>
+          <button class="filter-tab">历史</button>
+          <button class="filter-tab">哲学</button>
+          <button class="filter-tab">艺术</button>
+        </div>
+        
+        <div class="book-list">
+          <!-- 图书项1 -->
+          <div class="book-item">
+            <div class="book-cover">
+              <img src="https://picsum.photos/seed/onehundred/400/600" alt="百年孤独">
+              <div class="book-category-tag">文学</div>
+              <div class="book-status-tag">可借阅</div>
+            </div>
+            <div class="book-info">
+              <div class="book-title">百年孤独</div>
+              <div class="book-author">加西亚·马尔克斯</div>
+              <div class="book-meta">
+                <span>ISBN: 9787544291170</span>
+                <span>2017-1</span>
+              </div>
+              <div class="book-actions">
+                <button class="action-btn borrow-btn" onclick="showSuccess('借阅请求已提交！')">借阅</button>
+                <button class="action-btn detail-btn" onclick="showBookDetail('百年孤独')">详情</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 图书项2 -->
+          <div class="book-item">
+            <div class="book-cover">
+              <img src="https://picsum.photos/seed/threebody/400/600" alt="三体">
+              <div class="book-category-tag">科幻</div>
+              <div class="book-status-tag">可借阅</div>
+            </div>
+            <div class="book-info">
+              <div class="book-title">三体</div>
+              <div class="book-author">刘慈欣</div>
+              <div class="book-meta">
+                <span>ISBN: 9787536692930</span>
+                <span>2008-1</span>
+              </div>
+              <div class="book-actions">
+                <button class="action-btn borrow-btn" onclick="showSuccess('借阅请求已提交！')">借阅</button>
+                <button class="action-btn detail-btn" onclick="showBookDetail('三体')">详情</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 图书项3 -->
+          <div class="book-item">
+            <div class="book-cover">
+              <img src="https://picsum.photos/seed/tolive/400/600" alt="活着">
+              <div class="book-category-tag">小说</div>
+              <div class="book-status-tag">可借阅</div>
+            </div>
+            <div class="book-info">
+              <div class="book-title">活着</div>
+              <div class="book-author">余华</div>
+              <div class="book-meta">
+                <span>ISBN: 9787530209207</span>
+                <span>2008-5</span>
+              </div>
+              <div class="book-actions">
+                <button class="action-btn borrow-btn" onclick="showSuccess('借阅请求已提交！')">借阅</button>
+                <button class="action-btn detail-btn" onclick="showBookDetail('活着')">详情</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 图书项4 -->
+          <div class="book-item">
+            <div class="book-cover">
+              <img src="https://picsum.photos/seed/humanhistory/400/600" alt="人类简史">
+              <div class="book-category-tag">历史</div>
+              <div class="book-status-tag unavailable">已借出</div>
+            </div>
+            <div class="book-info">
+              <div class="book-title">人类简史</div>
+              <div class="book-author">尤瓦尔·赫拉利</div>
+              <div class="book-meta">
+                <span>ISBN: 9787508647357</span>
+                <span>2014-11</span>
+              </div>
+              <div class="book-actions">
+                <button class="action-btn borrow-btn" style="background-color: #6c757d; cursor: not-allowed;">已借出</button>
+                <button class="action-btn detail-btn" onclick="showBookDetail('人类简史')">详情</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 图书项5 -->
+          <div class="book-item">
+            <div class="book-cover">
+              <img src="https://picsum.photos/seed/fortress/400/600" alt="围城">
+              <div class="book-category-tag">文学</div>
+              <div class="book-status-tag">可借阅</div>
+            </div>
+            <div class="book-info">
+              <div class="book-title">围城</div>
+              <div class="book-author">钱钟书</div>
+              <div class="book-meta">
+                <span>ISBN: 9787020002207</span>
+                <span>1991-2</span>
+              </div>
+              <div class="book-actions">
+                <button class="action-btn borrow-btn" onclick="showSuccess('借阅请求已提交！')">借阅</button>
+                <button class="action-btn detail-btn" onclick="showBookDetail('围城')">详情</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 图书项6 -->
+          <div class="book-item">
+            <div class="book-cover">
+              <img src="https://picsum.photos/seed/programming/400/600" alt="编程珠玑">
+              <div class="book-category-tag">技术</div>
+              <div class="book-status-tag">可借阅</div>
+            </div>
+            <div class="book-info">
+              <div class="book-title">编程珠玑</div>
+              <div class="book-author">乔恩·本特利</div>
+              <div class="book-meta">
+                <span>ISBN: 9787115199277</span>
+                <span>2008-10</span>
+              </div>
+              <div class="book-actions">
+                <button class="action-btn borrow-btn" onclick="showSuccess('借阅请求已提交！')">借阅</button>
+                <button class="action-btn detail-btn" onclick="showBookDetail('编程珠玑')">详情</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 图书详情模态框 -->
+    <div id="bookModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modalTitle">图书详情</h3>
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- 内容将通过JavaScript动态填充 -->
+        </div>
+        <div class="modal-footer">
+          <button class="action-btn detail-btn" onclick="closeModal()">关闭</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 成功消息提示 -->
+    <div id="successMessage" class="success-message">借阅请求已提交！</div>
+    
+    <script>
+      // 图书详情数据（包含封面图片）
+      const bookDetails = {
+        '百年孤独': {
+          title: '百年孤独',
+          author: '加西亚·马尔克斯',
+          isbn: '9787544291170',
+          category: '文学',
+          publishDate: '2017-08-01',
+          publisher: '南海出版公司',
+          pages: 360,
+          status: '可借阅',
+          imageUrl: 'https://picsum.photos/seed/onehundred/400/600',
+          description: '《百年孤独》是魔幻现实主义文学的代表作，描写了布恩迪亚家族七代人的传奇故事，以及加勒比海沿岸小镇马孔多的百年兴衰，反映了拉丁美洲一个世纪以来风云变幻的历史。'
+        },
+        '三体': {
+          title: '三体',
+          author: '刘慈欣',
+          isbn: '9787536692930',
+          category: '科幻',
+          publishDate: '2008-01-01',
+          publisher: '重庆出版社',
+          pages: 302,
+          status: '可借阅',
+          imageUrl: 'https://picsum.photos/seed/threebody/400/600',
+          description: '文化大革命如火如荼地进行，天文学家叶文洁在运动中遭受迫害，被送到青海支援建设。她在荒无人烟的雷达站接收到了来自宇宙深处的信号，并与三体文明建立了联系。'
+        },
+        '活着': {
+          title: '活着',
+          author: '余华',
+          isbn: '9787544293724',
+          category: '小说',
+          publishDate: '2017-05-01',
+          publisher: '南海出版公司',
+          pages: 191,
+          status: '可借阅',
+          imageUrl: 'https://picsum.photos/seed/tolive/400/600',
+          description: '《活着》是余华最具代表性的作品，讲述了农村人福贵悲惨的人生遭遇。福贵本是个阔少爷，可他嗜赌如命，终于赌光了家业，一贫如洗。他的父亲被他活活气死，母亲则在穷困中患了重病。'
+        },
+        '人类简史': {
+          title: '人类简史',
+          author: '尤瓦尔·赫拉利',
+          isbn: '9787508647357',
+          category: '历史',
+          publishDate: '2014-11-01',
+          publisher: '中信出版社',
+          pages: 440,
+          status: '已借出',
+          imageUrl: 'https://picsum.photos/seed/humanhistory/400/600',
+          description: '《人类简史》是以色列新锐历史学家尤瓦尔·赫拉利代表作品，从十万年前有生命迹象开始，讲述了人类如何从弱小的猿类进化成为地球的主宰。'
+        },
+        '围城': {
+          title: '围城',
+          author: '钱钟书',
+          isbn: '9787020002207',
+          category: '文学',
+          publishDate: '1991-02-01',
+          publisher: '人民文学出版社',
+          pages: 359,
+          status: '可借阅',
+          imageUrl: 'https://picsum.photos/seed/fortress/400/600',
+          description: '《围城》是钱钟书所著的一部现代文学长篇杰作，被誉为"新儒林外史"。第一版于1947年由上海晨光出版公司出版。故事主要写抗战初期知识分子的群相。'
+        },
+        '编程珠玑': {
+          title: '编程珠玑',
+          author: '乔恩·本特利',
+          isbn: '9787115199277',
+          category: '技术',
+          publishDate: '2008-10-01',
+          publisher: '人民邮电出版社',
+          pages: 220,
+          status: '可借阅',
+          imageUrl: 'https://picsum.photos/seed/programming/400/600',
+          description: '《编程珠玑》是计算机科学领域的经典著作，书的内容围绕程序设计人员面对的一系列实际问题展开，作者以其独有的洞察力和创造力，引导读者理解这些问题并找出最佳解决方案。'
+        }
+      };
+      
+      // 显示图书详情
+      function showBookDetail(bookName) {
+        const book = bookDetails[bookName];
+        if (book) {
+          document.getElementById('modalTitle').textContent = book.title;
+          document.getElementById('modalBody').innerHTML = `
+            <div class="modal-book-detail">
+              <div class="modal-book-cover">
+                <img src="${book.imageUrl}" alt="${book.title}">
+              </div>
+              <div class="modal-book-info">
+                <div class="modal-book-title">${book.title}</div>
+                <div class="modal-book-author">${book.author}</div>
+                <div class="modal-book-meta">
+                  <p><strong>ISBN：</strong>${book.isbn}</p>
+                  <p><strong>分类：</strong>${book.category}</p>
+                  <p><strong>出版日期：</strong>${book.publishDate}</p>
+                  <p><strong>出版社：</strong>${book.publisher}</p>
+                  <p><strong>页数：</strong>${book.pages}页</p>
+                  <p><strong>状态：</strong>${book.status}</p>
+                </div>
+              </div>
+            </div>
+            <div class="modal-book-description">
+              <strong>内容简介：</strong>
+              <p>${book.description}</p>
+            </div>
+          `;
+          document.getElementById('bookModal').style.display = 'flex';
+        }
+      }
+      
+      // 关闭模态框
+      function closeModal() {
+        document.getElementById('bookModal').style.display = 'none';
+      }
+      
+      // 显示成功消息
+      function showSuccess(message) {
+        const successDiv = document.getElementById('successMessage');
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+        
+        // 3秒后隐藏消息
+        setTimeout(() => {
+          successDiv.style.display = 'none';
+        }, 3000);
+      }
+      
+      // 点击模态框外部关闭
+      window.onclick = function(event) {
+        const modal = document.getElementById('bookModal');
+        if (event.target === modal) {
+          closeModal();
+        }
+      };
+      
+      // 过滤标签切换
+      document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+          document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+          this.classList.add('active');
+          // 这里可以添加实际的过滤逻辑
+          showSuccess('已切换到"' + this.textContent + '"分类');
+        });
+      });
+      
+      // 导航链接切换
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+          this.classList.add('active');
+          showSuccess('已切换到"' + this.textContent + '"页面');
+        });
+      });
+    </script>
+  </body>
+</html>
